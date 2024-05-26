@@ -1,6 +1,50 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import io
+
+# Заголовок сайта
+st.set_page_config(page_title="Анализ данных Excel", page_icon="📊")
+st.title("Анализ данных Excel")
+
+# Опция для выбора цвета фона
+background_color = st.selectbox(
+    "Выберите цвет фона страницы",
+    ["Белый", "Светло-голубой", "Голубой", "Темно-синий", "Светло-красный", "Красный", "Темно-красный"]
+)
+
+# Словарь для цветов фона
+background_colors = {
+    "Белый": "#FFFFFF",
+    "Светло-голубой": "#E0FFFF",
+    "Голубой": "#ADD8E6",
+    "Темно-синий": "#00008B",
+    "Светло-красный": "#FFA07A",
+    "Красный": "#FF0000",
+    "Темно-красный": "#8B0000"
+}
+
+# Определение цвета текста в зависимости от фона
+text_color = "#000000" if background_color == "Белый" else "#FFFFFF"
+
+# Применение выбранного цвета фона и цвета текста
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-color: {background_colors[background_color]};
+        color: {text_color};
+    }}
+    .stApp h1 {{
+        color: {text_color};
+    }}
+    .stApp .css-1d391kg p {{
+        color: {text_color};
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Загрузка файла
 uploaded_file = st.file_uploader("Загрузите ваш Excel файл", type=["xlsx", "xls"])
@@ -41,7 +85,22 @@ if uploaded_file is not None:
         # Отображение графиков в Streamlit
         st.pyplot(fig)
 
+        # Создание файла для скачивания
+        towrite = io.BytesIO()
+        df.to_excel(towrite, index=False, engine='openpyxl')
+        towrite.seek(0)
+
+        # Кнопка для скачивания файла
+        st.download_button(
+            label="Скачать Excel файл",
+            data=towrite,
+            file_name='analyzed_data.xlsx',
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
     except Exception as e:
         st.error(f"Ошибка при чтении файла: {e}")
 else:
     st.info("Пожалуйста, загрузите файл для отображения его содержимого.")
+
+
