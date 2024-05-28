@@ -7,7 +7,7 @@ def analyzes_data(df):
     df['Дата'] = pd.to_datetime(df['Дата'])
     daily_data = df.groupby('Дата').sum()
     monthly_data = df.resample('M', on='Дата').sum()
-    # Построение графиков ежедневных сумм
+    
     st.subheader('Графики ежедневных сумм')
     fig, ax = plt.subplots(figsize=(14, 7))
     daily_data[['Итого | Сумма', 'Общие выплаты | Сумма', 'Ущерб имуществу | Сумма']].plot(
@@ -19,7 +19,7 @@ def analyzes_data(df):
     ax.grid(True)
     st.pyplot(fig)
 
-    # Построение графиков месячных сумм
+    
     st.subheader('Графики месячных сумм')
     fig, ax = plt.subplots(figsize=(14, 7))
     monthly_data[['Итого | Сумма', 'Общие выплаты | Сумма', 'Ущерб имуществу | Сумма']].plot(
