@@ -1,25 +1,12 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
+import io
 
-st.title('Анализ данных из Excel файла')
-
-# Загрузка файла
-uploaded_file = st.file_uploader("Загрузите Excel файл", type=["xlsx"])
-
-if uploaded_file:
-    data = pd.read_excel(uploaded_file, sheet_name='Лист1')
-
-    # Преобразование столбца с датами в формат datetime
-    data['Дата'] = pd.to_datetime(data['Дата'])
-
-    # Группировка данных по датам для получения сумм за день
-    daily_data = data.groupby('Дата').sum()
-
-    # Ресэмплинг данных по месяцам для получения сумм за месяц
-    monthly_data = data.resample('M', on='Дата').sum()
-
+def analyzes_data(df):
+    df['Дата'] = pd.to_datetime(df['Дата'])
+    daily_data = df.groupby('Дата').sum()
+    monthly_data = df.resample('M', on='Дата').sum()
     # Построение графиков ежедневных сумм
     st.subheader('Графики ежедневных сумм')
     fig, ax = plt.subplots(figsize=(14, 7))
@@ -44,15 +31,37 @@ if uploaded_file:
     ax.grid(True)
     st.pyplot(fig)
 
-    # Вычисление и отображение корреляционной матрицы
-    st.subheader('Корреляционная матрица')
-    correlation_matrix = data.corr()
-    st.write(correlation_matrix)
+st.title("Анализ данных")
+uploaded_file = st.file_uploader("Загрузите Excel файл", type=["xlsx", "xls"])
 
-    # Построение тепловой карты корреляционной матрицы
-    fig, ax = plt.subplots(figsize=(12, 8))
-    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', ax=ax)
-    ax.set_title('Тепловая карта корреляционной матрицы')
-    st.pyplot(fig)
+if uploaded_file is not None:
+    try:
+        df = pd.read_excel(uploaded_file)
+
+        st.write("Названия столбцов:")
+        st.write(df.columns)
+
+        st.write("Содержимое Excel файла:")
+        st.dataframe(df)
+
+        analyzes_data(df)
+
+
+        
+        towrite = io.BytesIO()
+        df.to_excel(towrite, index=False, engine="openpyxl")
+        towrite.seek(0)
+
+        st.download_button(
+            label = "Скачать файл",
+            data=towrite,
+            file_name="data.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+        )
+
+
+    except Exception as e:
+        st.error(f"Ошибка при чтении файла: {e}")
 else:
-    st.info('Пожалуйста, загрузите Excel файл для анализа.')
+    st.info("Пожалуйста загрузите файл")
